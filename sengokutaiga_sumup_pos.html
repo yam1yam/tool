@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>戦国大河座標まとめ</title>
+</head>
+<body>
+	<h1>戦国大河座標まとめ</h1>
+	<div>
+		形式：<input type="text" id="fmt" size="40" value="$N.R$R:$X,$Y">（$N=連番、$R=ランク、$X=X座標、$Y=Y座標）<br />
+		開始番号：<input type="text" id="startno" size="10" value="1"><br />
+		改行頻度：<input type="text" id="nl" size="10" value="2"><br />
+		<strong>Input: チャットからコピー</strong><br />
+		<textarea id="input_text" rows="15" cols="100"></textarea><br />
+		<input type="button" id="trans" value="↓変換する"><br />
+		<strong>Output</strong><br />
+		<textarea id="output_text" rows="15" cols="100"></textarea><br />
+	</div>
+
+<script>
+document.getElementById("trans").onclick = function(){
+	const fmt = document.getElementById("fmt").value;
+	const startno = parseInt(document.getElementById("startno").value,10);
+	let   nl = parseInt(document.getElementById("nl").value,10);
+	const text = document.getElementById("input_text").value;
+	const re = /ランク:(\d) *座標:\(?\s*([-\d]+),([-\d]+)/g;
+	if ( nl <= 0) {
+		nl = 1;
+	} 
+	let m;
+	let new_text = "";
+	let i = 0;
+	while ((m = re.exec(text)) !== null) {
+		const no = startno + i;
+		const sep = ((i%nl) == (nl-1)) ? "\n" : "　";
+		//new_text += no+".R"+m[1]+":"+m[2]+","+m[3]+sep;
+		new_text += fmt
+		  .replace('$N',no)
+		  .replace('$R',m[1])
+		  .replace('$X',m[2])
+		  .replace('$Y',m[3])
+		  +sep;
+		i++;
+	}
+	document.getElementById("output_text").value = new_text;
+}
+</script>
+
+</body>
+</html>
