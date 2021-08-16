@@ -20,9 +20,10 @@
 
 <script>
 document.getElementById("trans").onclick = function(){
+	'use strict';
 	const fmt = document.getElementById("fmt").value;
 	const startno = parseInt(document.getElementById("startno").value,10);
-	const nl = parseInt(document.getElementById("nl").value,10);
+	let   nl = parseInt(document.getElementById("nl").value,10);
 	const chkdup = document.getElementById("chkdup").checked;
 	const text = document.getElementById("input_text").value;
 
@@ -34,14 +35,14 @@ document.getElementById("trans").onclick = function(){
 
 	let m;
 	let new_text = "";
-	let pos_dupchk = {};
+	const pos_dupchk = {};
 	let i = 0;
 
 	while ((m = re.exec(text)) !== null) {
 		const no = startno + i;
 		const r = m[1];
-		let x = m[2];
-		let y = m[3];
+		let   x = m[2];
+		let   y = m[3];
 		const sep = ((i%nl) == (nl-1)) ? "\n" : "　";
 
 		if ( chkdup && pos_dupchk[x+","+y] ) {
@@ -56,7 +57,7 @@ document.getElementById("trans").onclick = function(){
 		  .replace('$Y',y)
 		  +sep;
 		
-		pos_dupchk[x+","+y] = 1;
+		pos_dupchk[x+","+y] = true;
 		i++;
 	}
 	document.getElementById("output_text").value = new_text;
