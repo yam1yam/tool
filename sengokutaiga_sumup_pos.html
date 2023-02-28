@@ -8,7 +8,7 @@
 	<h1>戦国大河座標まとめ</h1>
 	<div>
 		形式：<input type="text" id="fmt" size="40" value="$N.R$R:$X,$Y">（$N=連番、$R=ランク、$X=X座標、$Y=Y座標）<br />
-		開始番号：<input type="number" id="startno" size="10" value="1" style="ime-mode: inactive"><br />
+		開始番号：<input type="number" id="startno" size="10" value="1" style="ime-mode: inactive"> 自動インクリメント：<input type="checkbox" id="autoincr"><br />
 		改行頻度：<input type="number" id="nl" size="10" value="2" style="ime-mode: inactive"><br />
 		重複チェック：<input type="checkbox" id="chkdup" checked><br />
 		日付検出：<input type="checkbox" id="detectdate" checked><br />
@@ -30,12 +30,13 @@ document.getElementById("trans").onclick = function(){
 	'use strict';
 	const fmt = document.getElementById("fmt").value;
 	const startno = parseInt(document.getElementById("startno").value,10);
+	const autoincr = document.getElementById("autoincr").checked;
 	let   nl = parseInt(document.getElementById("nl").value,10);
 	const chkdup = document.getElementById("chkdup").checked;
 	const detectdate = document.getElementById("detectdate").checked;
-	const text = document.getElementById("input_text").value;
+	let text = document.getElementById("input_text").value;
 
-	const re = /ランク:(\d) *座標:\(?\s*([-\d]+),([-\d]+)/g;
+	const re = /ランク:(\d) *(?:座標)?:\(?\s*([-\d]+),([-\d]+)/g;
 	const re_date = /(\d\d\d\d\/\d\d\/\d\d \d\d:\d\d:\d\d)/g;
 	const re_date2 = /(\d\d:\d\d)/g;
 
@@ -48,6 +49,19 @@ document.getElementById("trans").onclick = function(){
 	const pos_dupchk = {};
 	let i = 0;
 
+	//表記揺れ対策
+	text = text
+	.replace(/①/g,'ランク:1 座標:')
+	.replace(/②/g,'ランク:2 座標:')
+	.replace(/③/g,'ランク:3 座標:')
+	.replace(/④/g,'ランク:4 座標:')
+	.replace(/⑤/g,'ランク:5 座標:')
+	.replace(/R1/g,'ランク:1 座標:')
+	.replace(/R2/g,'ランク:2 座標:')
+	.replace(/R3/g,'ランク:3 座標:')
+	.replace(/R4/g,'ランク:4 座標:')
+	.replace(/R5/g,'ランク:5 座標:');
+
 	while ((m = re.exec(text)) !== null) {
 		const no = startno + i;
 		const r = m[1];
@@ -55,20 +69,21 @@ document.getElementById("trans").onclick = function(){
 		let   y = m[3];
 		const sep = ((i%nl) == (nl-1)) ? "\n" : "　";
 
-		if ( chkdup && pos_dupchk[x+","+y] ) {
-			x += "(重複)";
-			y += "(重複)";
-		}
+		const dupinfo = pos_dupchk[x+","+y] ? "("+pos_dupchk[x+","+y]+"と重複)" : "";
 
 		new_text += fmt
 		  .replace('$N',no)
 		  .replace('$R',r)
 		  .replace('$X',x)
-		  .replace('$Y',y)
+		  .replace('$Y',y+dupinfo)
 		  +sep;
 		
-		pos_dupchk[x+","+y] = true;
+		pos_dupchk[x+","+y] = no;
 		i++;
+	}
+
+	if ( autoincr ) {
+		document.getElementById("startno").value = startno + i;
 	}
 
 	if ( detectdate ) {
@@ -84,7 +99,12 @@ document.getElementById("trans").onclick = function(){
 		if ( date_list2.length >= 2 ) {
 			new_text = date_list[0].replace(/\d\d:\d\d:\d\d/,"") + date_list2[0] + "～" + date_list2[date_list2.length-1] + "\n" + new_text;
 		} else {
-			new_text = date_list[0] + "～" + date_list[date_list.length-1] + "\n" + new_text;
+			var date_first = date_list[0];
+			var date_last = date_list[date_list.length-1];
+			if ( date_first.slice(0,10) ==  date_last.slice(0,10) ) {
+				date_last = date_last.slice(11);
+			}
+			new_text = date_first + "～" + date_last + "\n" + new_text;
 		}
 	}
 	document.getElementById("output_text").value = new_text;
