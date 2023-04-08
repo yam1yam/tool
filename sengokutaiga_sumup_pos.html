@@ -108,7 +108,7 @@ document.getElementById("trans").onclick = function(){
 		}
 		if ( date_list2.length >= 2 ) {
 			new_text = date_list[0].replace(/\d\d:\d\d:\d\d/,"") + date_list2[0] + "～" + date_list2[date_list2.length-1] + "\n" + new_text;
-		} else {
+		} else if ( date_list.length >= 1 ) {
 			const date_list_sort = date_list.sort();
 			var date_first = date_list_sort[0];
 			var date_last = date_list_sort[date_list_sort.length-1];
@@ -116,14 +116,16 @@ document.getElementById("trans").onclick = function(){
 				date_last = date_last.slice(11);
 			}
 			new_text = date_first + "～" + date_last + "\n" + new_text;
+		} else {
+			new_text = "日付検出失敗\n" + new_text;
 		}
 	}
 	document.getElementById("output_text").value = new_text;
 }
 document.getElementById("trans_copy").onclick = function(){
 	const output_text = document.getElementById("output_text");
-	output_text.select()
-	document.execCommand("copy")
+	output_text.select();
+	document.execCommand("copy");
 }
 </script>
 
