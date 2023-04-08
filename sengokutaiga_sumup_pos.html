@@ -12,14 +12,23 @@
 		改行頻度：<input type="number" id="nl" size="10" value="2" style="ime-mode: inactive"><br />
 		重複チェック：<input type="checkbox" id="chkdup" checked><br />
 		日付検出：<input type="checkbox" id="detectdate" checked><br />
+		番号検出：<input type="checkbox" id="detectno"><br />
 		<strong>Input: チャットからコピー</strong><br />
 		<textarea id="input_text" rows="15" cols="100"></textarea><br />
 		<input type="button" id="trans" value="↓変換する"><br />
-		<strong>Output</strong><br />
+		<strong>Output</strong> <input type="button" id="trans_copy" value="変換結果をコピー"><br />
 		<textarea id="output_text" rows="15" cols="100"></textarea><br />
 	</div>
 
-	<h2>LICENSE</h1>
+	<h2>説明</h2>
+	<ul>
+		<li>開始番号: 連番の開始番号を指定。</li>
+		<li>自動インクリメント: 「↓変換する」ボタンを押したときに変換した座標の数だけ開始番号を増やす。</li>
+		<li>重複チェック: 同じ座標が2回以上出現したときにメッセージを出力。</li>
+		<li>日付検出: 日付を検索し「最初の日付～最後の日付」を出力。</li>
+		<li>番号検出: 連番の代わりに座標の直前に記載された番号を使う。「30.ランク:5 座標:(120,369)」の様な形式で入力。</li>
+	</ul>
+	<h2>LICENSE</h2>
 	<div>
 		<a rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/"><img src="https://i.creativecommons.org/p/zero/1.0/88x31.png" alt="CC0" /></a>
 		<p>To the extent possible under law, <a href="https://github.com/yam1yam/">yam1yam</a> has waived all copyright and related or neighboring rights to https://yam1yam.github.io/tool/sengokutaiga_sumup_pos.html.</p>
@@ -34,9 +43,10 @@ document.getElementById("trans").onclick = function(){
 	let   nl = parseInt(document.getElementById("nl").value,10);
 	const chkdup = document.getElementById("chkdup").checked;
 	const detectdate = document.getElementById("detectdate").checked;
+	const detectno = document.getElementById("detectno").checked;
 	let text = document.getElementById("input_text").value;
 
-	const re = /ランク:(\d) *(?:座標)?:\(?\s*([-\d]+),([-\d]+)/g;
+	const re = /(?:(\d+)\. *)?ランク:(\d) *(?:座標)?:\(?\s*([-\d]+),([-\d]+)/g;
 	const re_date = /(\d\d\d\d\/\d\d\/\d\d \d\d:\d\d:\d\d)/g;
 	const re_date2 = /(\d\d:\d\d)/g;
 
@@ -63,10 +73,10 @@ document.getElementById("trans").onclick = function(){
 	.replace(/R5/g,'ランク:5 座標:');
 
 	while ((m = re.exec(text)) !== null) {
-		const no = startno + i;
-		const r = m[1];
-		let   x = m[2];
-		let   y = m[3];
+		const no = detectno ? (m[1] || "?") : (startno + i);
+		const r = m[2];
+		let   x = m[3];
+		let   y = m[4];
 		const sep = ((i%nl) == (nl-1)) ? "\n" : "　";
 
 		const dupinfo = pos_dupchk[x+","+y] ? "("+pos_dupchk[x+","+y]+"と重複)" : "";
@@ -99,8 +109,9 @@ document.getElementById("trans").onclick = function(){
 		if ( date_list2.length >= 2 ) {
 			new_text = date_list[0].replace(/\d\d:\d\d:\d\d/,"") + date_list2[0] + "～" + date_list2[date_list2.length-1] + "\n" + new_text;
 		} else {
-			var date_first = date_list[0];
-			var date_last = date_list[date_list.length-1];
+			const date_list_sort = date_list.sort();
+			var date_first = date_list_sort[0];
+			var date_last = date_list_sort[date_list_sort.length-1];
 			if ( date_first.slice(0,10) ==  date_last.slice(0,10) ) {
 				date_last = date_last.slice(11);
 			}
@@ -108,6 +119,11 @@ document.getElementById("trans").onclick = function(){
 		}
 	}
 	document.getElementById("output_text").value = new_text;
+}
+document.getElementById("trans_copy").onclick = function(){
+	const output_text = document.getElementById("output_text");
+	output_text.select()
+	document.execCommand("copy")
 }
 </script>
 
