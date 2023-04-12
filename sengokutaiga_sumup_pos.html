@@ -3,31 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <title>戦国大河座標まとめ</title>
+<style>
+dl {
+	border-bottom:1px solid #ccc;
+	border-left:1px solid #ccc;
+	border-right:1px solid #ccc;
+}
+dl dt {
+	font-weight:bold;
+	background-color:#ddeeff;
+	border-top:1px solid #ccc;
+}
+dl dd {
+}
+</style>
 </head>
 <body>
 	<h1>戦国大河座標まとめ</h1>
 	<div>
 		形式：<input type="text" id="fmt" size="40" value="$N.R$R:$X,$Y">（$N=連番、$R=ランク、$X=X座標、$Y=Y座標）<br />
-		開始番号：<input type="number" id="startno" size="10" value="1" style="ime-mode: inactive"> 自動インクリメント：<input type="checkbox" id="autoincr"><br />
+		開始番号：<input type="number" id="startno" size="10" value="1" style="ime-mode: inactive"> <label for="autoincr">自動インクリメント：</label><input type="checkbox" id="autoincr"><br />
 		改行頻度：<input type="number" id="nl" size="10" value="2" style="ime-mode: inactive"><br />
-		重複チェック：<input type="checkbox" id="chkdup" checked><br />
-		日付検出：<input type="checkbox" id="detectdate" checked><br />
-		番号検出：<input type="checkbox" id="detectno"><br />
-		<strong>Input: チャットからコピー</strong><br />
-		<textarea id="input_text" rows="15" cols="100"></textarea><br />
+		<label for="chkdup">重複チェック：</label><input type="checkbox" id="chkdup" checked><br />
+		<label for="detectdate">日付検出：</label><input type="checkbox" id="detectdate" checked><br />
+		<label for="detectno">番号検出：</label><input type="checkbox" id="detectno"><br />
+		<strong>Input: チャットからコピー</strong> <input type="button" id="trans_paste" value="貼り付け"> <input type="button" id="trans_pasteadd" value="貼り付け（後ろに追加）"><br />
+		<textarea id="input_text" rows="10" cols="80"></textarea><br />
 		<input type="button" id="trans" value="↓変換する"><br />
 		<strong>Output</strong> <input type="button" id="trans_copy" value="変換結果をコピー"><br />
-		<textarea id="output_text" rows="15" cols="100"></textarea><br />
+		<textarea id="output_text" rows="10" cols="80"></textarea><br />
 	</div>
 
 	<h2>説明</h2>
-	<ul>
-		<li>開始番号: 連番の開始番号を指定。</li>
-		<li>自動インクリメント: 「↓変換する」ボタンを押したときに変換した座標の数だけ開始番号を増やす。</li>
-		<li>重複チェック: 同じ座標が2回以上出現したときにメッセージを出力。</li>
-		<li>日付検出: 日付を検索し「最初の日付～最後の日付」を出力。</li>
-		<li>番号検出: 連番の代わりに座標の直前に記載された番号を使う。「30.ランク:5 座標:(120,369)」の様な形式で入力。</li>
-	</ul>
+	<dl>
+		<dt>開始番号</dt><dd>連番の開始番号を指定。</dd>
+		<dt>自動インクリメント</dt><dd>「↓変換する」ボタンを押したときに変換した座標の数だけ開始番号を増やす。</dd>
+		<dt>重複チェック</dt><dd>同じ座標が2回以上出現したときにメッセージを出力。</dd>
+		<dt>日付検出</dt><dd>日付を検索し「最初の日付～最後の日付」を出力。</dd>
+		<dt>番号検出</dt><dd>連番の代わりに座標の直前に記載された番号を使う。「30.ランク:5 座標:(120,369)」の様な形式で入力。</dd>
+		<dt>「↓変換する」ボタン</dt><dd>座標まとめを実行。結果はOutputに出力。</dd>
+		<dt>「変換結果をコピー」ボタン</dt><dd>Outputをクリップボードにコピー。</dd>
+		<dt>「貼り付け」ボタン</dt><dd>クリップボード内容をInputに貼り付け。既にInputに入力されているときは、上書き警告ダイアログ有り。</dd>
+		<dt>「貼り付け（後ろに追加）」ボタン</dt><dd>クリップボード内容をInputに追記。</dd>
+	</dl>
 	<h2>LICENSE</h2>
 	<div>
 		<a rel="license" href="https://creativecommons.org/publicdomain/zero/1.0/"><img src="https://i.creativecommons.org/p/zero/1.0/88x31.png" alt="CC0" /></a>
@@ -35,7 +53,7 @@
 	</div>
 
 <script>
-document.getElementById("trans").onclick = function(){
+document.getElementById("trans").addEventListener('click', () => {
 	'use strict';
 	const fmt = document.getElementById("fmt").value;
 	const startno = parseInt(document.getElementById("startno").value,10);
@@ -121,12 +139,38 @@ document.getElementById("trans").onclick = function(){
 		}
 	}
 	document.getElementById("output_text").value = new_text;
-}
-document.getElementById("trans_copy").onclick = function(){
+});
+
+document.getElementById("trans_copy").addEventListener('click', () => {
+	'use strict';
 	const output_text = document.getElementById("output_text");
-	output_text.select();
-	document.execCommand("copy");
-}
+	//output_text.select();
+	//document.execCommand("copy");
+	navigator.clipboard.writeText(output_text.value);
+});
+
+document.getElementById("trans_paste").addEventListener('click', () => {
+	'use strict';
+	const input_text = document.getElementById("input_text");
+	navigator.clipboard.readText().then((e) => {
+		if ( input_text.value != "" && !window.confirm("現在の入力内容は削除されます。よろしいですか？")) {
+			return;
+		}
+		input_text.value = e;
+	}, () => {
+		return;
+	});
+});
+
+document.getElementById("trans_pasteadd").addEventListener('click', () => {
+	'use strict';
+	const input_text = document.getElementById("input_text");
+	navigator.clipboard.readText().then((e) => {
+		input_text.value += e;
+	}, () => {
+		return;
+	});
+});
 </script>
 
 </body>
